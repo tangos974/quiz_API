@@ -1,19 +1,10 @@
 import csv
 import random
-from fastapi import FastAPI, Request, Query
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, HTTPException, Request, Query
 from typing import Optional
 from pydantic import BaseModel
 
 app = FastAPI()
-
-# Configure Jinja2 templates
-templates = Jinja2Templates(directory="templates")
-
-# Mount le dossier 'static' qui contiendra les fichiers statiques: css, images, javascript
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Charge les données depuis le fichier csv
 questions_data = []
@@ -50,16 +41,39 @@ def get_random(request: Request):
     """Question Aléatoire
     """
     random_question = random.choice(questions_data)
-    return templates.TemplateResponse("random_question.html", {"request": request, "question": random_question})
+    return {"question": random_question}
 
 @app.get("/random_filtered_question")
 def get_random_filtered(request: Request, use: str = Query(None, title="Use", description="Filter questions by use")):
-    """Question Aléatoire
+    """Question Aléatoire filtrée par use
     """
     if use:
         filtered_questions = [q for q in questions_data if q['use'] == use]
-        random_question = random.choice(filtered_questions)
+        try:
+            random_question = random.choice(filtered_questions)
+        except IndexError:
+            raise HTTPException(
+                status_code=404,
+                detail='use not in database')
     else:
         random_question = random.choice(questions_data)
 
-    return templates.TemplateResponse("random_filtered_question.html", {"request": request, "question": random_question, "uses": possible_uses})
+    return {"question": random_question}
+
+@app.get("/multiple_responses/")
+def read_multiple_responses(request: Request, use: str = Query(None, title="Use", description="Filter questions by use"), num_responses: int = Query(1, ge=1, le=20)):
+    """
+    """
+    if use:
+        filtered_questions = [q for q in questions_data if q['use'] == use]
+        try:
+            selected_questions = random.sample(filtered_questions, min(num_responses, len(filtered_questions)))
+        except:
+            raise HTTPException(
+            status_code=404,
+            detail='use not in database')
+
+    else:
+        selected_questions = random.sample(questions_data, min(num_responses, len(questions_data)))
+
+    return {"questions": selected_questions}
