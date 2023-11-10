@@ -133,3 +133,26 @@ def generate_qcm(
     selected_questions = random.sample(filtered_questions, num_questions)
 
     return {"num_questions": num_questions, "qcm": selected_questions, "user": current_user}
+
+
+@app.post("/create_question")
+def create_question(
+    question: Question,
+    current_user: str = Depends(verify_credentials)
+):
+    """
+    Create a new question (admin-only).
+    """
+    if current_user != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to create a question."
+        )
+
+    # Add the new question to the data
+    new_question = question.dict()
+    questions_data.append(new_question)
+
+    # Optionally, you can save the updated data back to the CSV file
+
+    return {"message": "Question created successfully", "user": current_user, "question": new_question}

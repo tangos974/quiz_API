@@ -7,7 +7,8 @@ security = HTTPBasic()
 users_credentials = {
     "alice": "wonderland",
     "bob": "builder",
-    "clementine": "mandarine"
+    "clementine": "mandarine",
+    "admin": "4dm1N"
 }
 
 def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
