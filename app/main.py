@@ -1,6 +1,6 @@
 import csv
 import random
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -35,7 +35,9 @@ class Question(BaseModel):
     responseD: Optional[str] = None
     remark: Optional[str] = None
 
-
+#TODO: replace these with requests
+possible_subjects = set(q['subject'] for q in questions_data)
+possible_uses = set(q['use'] for q in questions_data)
 
 @app.get('/')
 def get_index():
@@ -48,4 +50,16 @@ def get_random(request: Request):
     """Question Aléatoire
     """
     random_question = random.choice(questions_data)
-    return templates.TemplateResponse("index.html", {"request": request, "question": random_question})
+    return templates.TemplateResponse("random_question.html", {"request": request, "question": random_question})
+
+@app.get("/random_filtered_question")
+def get_random_filtered(request: Request, use: str = Query(None, title="Use", description="Filter questions by use")):
+    """Question Aléatoire
+    """
+    if use:
+        filtered_questions = [q for q in questions_data if q['use'] == use]
+        random_question = random.choice(filtered_questions)
+    else:
+        random_question = random.choice(questions_data)
+
+    return templates.TemplateResponse("random_filtered_question.html", {"request": request, "question": random_question, "uses": possible_uses})

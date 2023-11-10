@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Random Question{% endblock %}
+
+{% block header %}Random Question{% endblock %}
+
+{% block content %}
+    <form method="get">
+        <label for="use">Select Use:</label>
+        <select name="use" id="use">
+            <option value="">All Uses</option>
+            {% for u in uses %}
+                <option value="{{ u }}" {% if u == request.query_params.use %}selected{% endif %}>{{ u }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    <h2>{{ question.question }}</h2>
+    <p>Subject: {{ question.subject }}</p>
+    <p>Use: {{ question.use }}</p>
+    <p>Responses:</p>
+    <ul>
+        <li>A: {{ question.responseA }}</li>
+        <li>B: {{ question.responseB }}</li>
+        <li>C: {{ question.responseC }}</li>
+        {% if question.responseD %}
+            <li>D: {{ question.responseD }}</li>
+        {% endif %}
+    </ul>
+    <p>Correct: {{ question.correct }}</p>
+{% endblock %}
