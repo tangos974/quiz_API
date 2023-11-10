@@ -1,22 +1,51 @@
+import csv
+import random
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from typing import Optional
+from pydantic import BaseModel
 
 app = FastAPI()
 
+# Configure Jinja2 templates
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    data = {
-        "page": "Home page"
-    }
-    return templates.TemplateResponse("page.html", {"request": request, "data": data})
+# Mount le dossier 'static' qui contiendra les fichiers statiques: css, images, javascript
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Charge les données depuis le fichier csv
+questions_data = []
+with open("questions.csv", newline="", encoding="utf-8") as csvfile:
+    csvreader = csv.DictReader(csvfile)
+    questions_data = list(csv.DictReader(csvfile))
 
 
-@app.get("/page/{page_name}", response_class=HTMLResponse)
-async def page(request: Request, page_name: str):
-    data = {
-        "page": page_name
-    }
-    return templates.TemplateResponse("page.html", {"request": request, "data": data})
+class Question(BaseModel):
+    """Une question du tableau
+    """
+    question: str
+    subject: str
+    use: str
+    correct: str
+    responseA: str
+    responseB: str
+    responseC: Optional[str] = None
+    responseD: Optional[str] = None
+    remark: Optional[str] = None
+
+
+
+@app.get('/')
+def get_index():
+    """Message de Bienvenue
+    """
+    return{'message': 'Bienvenue sur mon API'}
+
+@app.get("/random_question")
+def get_random(request: Request):
+    """Question Aléatoire
+    """
+    random_question = random.choice(questions_data)
+    return templates.TemplateResponse("index.html", {"request": request, "question": random_question})
