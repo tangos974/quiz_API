@@ -26,9 +26,10 @@ class Question(BaseModel):
     responseD: Optional[str] = None
     remark: Optional[str] = None
 
-#TODO: replace these with requests
+# TODO: replace these with requests
 possible_subjects = set(q['subject'] for q in questions_data)
 possible_uses = set(q['use'] for q in questions_data)
+
 
 @app.get('/')
 def get_index():
@@ -36,12 +37,14 @@ def get_index():
     """
     return{'message': 'Bienvenue sur mon API'}
 
+
 @app.get("/random_question")
 def get_random(request: Request):
     """Question Aléatoire
     """
     random_question = random.choice(questions_data)
     return {"question": random_question}
+
 
 @app.get("/random_filtered_question")
 def get_random_filtered(request: Request, use: str = Query(None, title="Use", description="Filter questions by use")):
@@ -60,6 +63,7 @@ def get_random_filtered(request: Request, use: str = Query(None, title="Use", de
 
     return {"question": random_question}
 
+
 @app.get("/multiple_responses/")
 def read_multiple_responses(request: Request, use: str = Query(None, title="Use", description="Filter questions by use"), num_responses: int = Query(1, ge=1, le=20)):
     """
@@ -77,3 +81,12 @@ def read_multiple_responses(request: Request, use: str = Query(None, title="Use"
         selected_questions = random.sample(questions_data, min(num_responses, len(questions_data)))
 
     return {"questions": selected_questions}
+
+
+@app.get("/stop_dash_app")
+def stop_dash_app():
+    """Stop Dash App
+    """
+    if 'app_dash' in globals():
+        app_dash.server.terminate()
+    return {"message": "Stopping Dash app"}
