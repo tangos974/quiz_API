@@ -3,6 +3,8 @@ from dash import html
 from dash import dcc
 from dash.dependencies import Input, Output, State
 import requests
+from main import possible_subjects
+from main import possible_uses
 
 # Initialize the Dash app
 app_dash = dash.Dash(__name__)

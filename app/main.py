@@ -1,7 +1,7 @@
 import csv
 import random
 from fastapi import FastAPI, HTTPException, Request, Query
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -83,10 +83,31 @@ def read_multiple_responses(request: Request, use: str = Query(None, title="Use"
     return {"questions": selected_questions}
 
 
-@app.get("/stop_dash_app")
-def stop_dash_app():
-    """Stop Dash App
+@app.get("/generate_qcm/")
+def generate_qcm(
+    request: Request,
+    num_questions: int = Query(..., title="Number of Questions", ge=1, le=20),
+    use: Optional[str] = Query(None, title="Use", description="Filter questions by use"),
+    subjects: Optional[List[str]] = Query(None, title="Subjects", description="Filter questions by subject")
+):
     """
-    if 'app_dash' in globals():
-        app_dash.server.terminate()
-    return {"message": "Stopping Dash app"}
+    Generate a QCM (Quiz à Choix Multiples) with the specified parameters.
+    """
+    # Filter questions by use
+    filtered_questions = questions_data if use is None else [q for q in questions_data if q['use'] == use]
+
+    # Filter questions by subjects
+    if subjects:
+        filtered_questions = [q for q in filtered_questions if q['subject'] in subjects]
+
+    # Check if there are enough questions to generate
+    if len(filtered_questions) < num_questions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Not enough questions available for the specified criteria. Total available questions: {len(filtered_questions)}"
+        )
+
+    # Select random questions based on the specified criteria
+    selected_questions = random.sample(filtered_questions, num_questions)
+
+    return {"qcm": selected_questions}
